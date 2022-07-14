@@ -8,7 +8,7 @@ animals = []
 symbols = {}
 key = 0
 Len = 0
-lesson_time = 0
+cnt = 0
 flag = True
 tests = [
     {'data': {'lesson': [1594663200, 1594666800],
@@ -99,31 +99,101 @@ print('---------------------------------Задание 3------------------------
 
 
 def appearance(data):
-    print(data.values())
+    global cnt
     lesson = data.get('lesson')
-    print('Lesson:', lesson)
-    for i in range(len(lesson)):
-        lesson_time = lesson_time + (lesson[i+1] - lesson[i] % len(lesson))
-    print('Lesson time:', lesson_time)
-
-    student = data.get('pupil')
-    for i in range(len(student)):
-        student_time = student_time + (student[i + 1] - student[(i - 1) % len(student)])
-    print('Student_time:', student_time)
-
     teacher = data.get('tutor')
-    for i in range(len(teacher)):
-        teacher_time = teacher_time + (teacher[i + 1] - teacher[(i - 1) % len(student)])
-    print('Teacher time', teacher_time)
+    student = data.get('pupil')
+    print('Lesson', lesson)
+    print('Teacher', teacher)
+    print('Student:', student)
+    if lesson[0] > teacher[0]:
+        print('Учитель зашел раньше начала урока')
+        print(lesson[0], '>', teacher[0])
+        if teacher[1] > lesson[0]:
+            print('Учитель зашел раньше начала урока и не выходил до его начала')
+            print(lesson[0], '>', teacher[0])
+            prom = (teacher[1] - teacher[0]) - (lesson[0] - teacher[0])
+            new_start = teacher[1] - prom
+            teacher[0] = new_start
+        elif teacher[1] < lesson[0]:
+            print('Учитель зашел и вышел раньше начала урока')
+            print(teacher[1], '<', lesson[0])
+            teacher.pop(0)
+            teacher.pop(0)
+    if teacher[-1] > lesson[1]:
+        print('Учитель вышел после конца урока')
+        print(teacher[-1], '>', lesson[1])
+        if teacher[-2] > lesson[1]:
+            print('Учитель зашел и вышел после конца урока')
+            print(teacher[-2], '>', lesson[1])
+            teacher.pop(-1)
+            teacher.pop(-1)
+        elif lesson[1] > teacher[-2]:
+            print('Учитель зашел до конца урока и вышел после конца урока')
+            print(lesson[1], '>', teacher[-2])
+            #prom = (teacher[-1] - teacher[-2]) - (teacher[-1] - lesson[1])
+            teacher[-1] = lesson[1]
+        elif lesson[1] > teacher[-1]:
+            print('Учитель зашел и вышел до конца урока')
+            print(lesson[1], '>', teacher[-1])
+    print('Teacher', teacher)
+    print('Student:', student)
+    print('')
+    print('')
+    print('')
 
-    all_teacher_time = lesson_time - teacher_time
-    all_student_time = lesson_time - student_time
-    print('All student time:', all_student_time)
-    print('All teacher time:', all_teacher_time)
-    return(all_student_time, all_teacher_time)
+    #print('Teacher', teacher)
+    #print('Student:', student)
+
+    for i in range(0, (len(teacher)-1)):
+        for j in range(0, (len(student)-1)):
+            if teacher[i] == student[j]: #если учитель и ученик зашли в одно время
+                if student[j+1] == teacher[i+1]: #и вышли в одно время
+                    cnt = cnt + (teacher[i+1] - teacher[i])
+                    #print('1.1', cnt)
+                elif teacher[i+1] > student[j+1]: #и ученик вышел раньше
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (teacher[i+1] - student[j+1]))
+                    #print('1.2', cnt)
+                elif student[j+1] > teacher[i+1]: #и учитель вышел раньше
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (student[j+1] - teacher[i+1]))
+                    #print('1.3', cnt)
+            elif teacher[i] < student[j]: #если учитель зашел на урок раньше
+                if student[j+1] == teacher[i+1]: #и вышли в одно время
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (student[j] - teacher[i]))
+                    #print('2.1', cnt)
+                elif teacher[i + 1] > student[j + 1]:  #и ученик вышел раньше
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (student[j] - teacher[i]) - (teacher[i+1] - student[j+1]))
+                    #print('2.2', cnt)
+                elif student[j+1] > teacher[i+1]: #и учитель вышел раньше
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (student[i] - teacher[i]) - (student[j+1] - teacher[i+1]))
+                    #print('2.3', cnt)
+            elif teacher[i] > student[j]: #если ученик зашел раньше учителя
+                if teacher[i+1] == student[j+1]: #и вышли в одно время
+                    cnt = cnt + ((teacher[i+1] - teacher[i]) - (teacher[i] - student[j]))
+                    #print('3.1', cnt)
+                elif student[j+1] < teacher[i + 1]:  # и ученик вышел раньше
+                    cnt = cnt + ((student[j] - student[j + 1]) - (teacher[i] - student[j]) - (teacher[i + 1] - student[j + 1]))
+                    #print('3.2', cnt)
+                elif student[j+1] > teacher[i+1]: #и учитель вышел раньше
+                    cnt = cnt + ((student[j] - student[j + 1]) - (teacher[i] - student[j]) - (student[j + 1] - teacher[i + 1]))
+                    #print('3.3', cnt)
+    #print('Cnt', cnt)
+    return cnt
+
+
+    #global lesson_time, teacher_time, student_time
+    #student = data.get('pupil')
+    #for i in range(0, (len(student)-1)):
+     #   student_time = student_time + (student[i+1] - student[i])
+    #print('Student time:', student_time)
+    #teacher = data.get('tutor')
+    #for i in range(0, (len(teacher) - 1)):
+     #   teacher_time = teacher_time + (student[i + 1] - student[i])
+    #print('Teacher time', teacher_time)
+    #return(student_time, teacher_time)
 
 
 for i, test in enumerate(tests):
   test_answer = appearance(test['data'])
-  print(test_answer)
+  #print(test_answer)
 
